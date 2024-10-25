@@ -64,7 +64,7 @@ if (TORCHFORT_ENABLE_GPU)
     if (NVHPC_CXX_BIN)
         string(REPLACE "compilers/bin/nvc++" "cmake" NVHPC_CMAKE_DIR ${NVHPC_CXX_BIN})
         set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${NVHPC_CMAKE_DIR}")
-        find_package(NVHPC COMPONENTS CUDA MATH REQUIRED)
+        find_package(NVHPC REQUIRED COMPONENTS CUDA MATH)
     endif()
 
     # Get NCCL library (with optional override)
