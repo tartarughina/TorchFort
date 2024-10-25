@@ -65,9 +65,15 @@ program train_distributed
   real(real32) :: a(2), dt
   real(real32) :: loss_val
   real(real64) :: mse
+  #ifdef UM
+  real(real32), allocatable, managed :: u(:,:), u_div(:,:)
+  real(real32), allocatable, managed :: input(:,:,:,:), label(:,:,:,:), output(:,:,:,:)
+  real(real32), allocatable, managed :: input_local(:,:,:,:), label_local(:,:,:,:)
+  #else
   real(real32), allocatable :: u(:,:), u_div(:,:)
   real(real32), allocatable :: input(:,:,:,:), label(:,:,:,:), output(:,:,:,:)
   real(real32), allocatable :: input_local(:,:,:,:), label_local(:,:,:,:)
+  #endif
   character(len=7) :: idx
   character(len=256) :: filename
   logical :: load_ckpt = .false.
@@ -271,7 +277,11 @@ program train_distributed
 
   ! run training
   if (rank == 0 .and. ntrain_steps >= 1) print*, "start training..."
+
+  #ifndef UM
   !$acc data copyin(u, u_div, input, label, input_local, label_local) if(simulation_device >= 0)
+  #endif
+
   do i = 1, ntrain_steps
     do j = 1, batch_size * nranks
       call run_simulation_step(u, u_div)
@@ -285,29 +295,44 @@ program train_distributed
 
     ! distribute local batch data across GPUs for data parallel training
     do j = 1, batch_size
-      !$acc host_data use_device(input_local, label_local, input, label) if(simulation_device >= 0)
+        #ifndef UM
+        !$acc host_data use_device(input_local, label_local, input, label) if(simulation_device >= 0)
+        #endif
+
       call MPI_Alltoallv(input_local(:,:,1,j), sendcounts, sdispls, MPI_FLOAT, &
                          input(:,:,1,j), recvcounts, rdispls, MPI_FLOAT, &
                          MPI_COMM_WORLD, istat)
       call MPI_Alltoallv(label_local(:,:,1,j), sendcounts, sdispls, MPI_FLOAT, &
                          label(:,:,1,j), recvcounts, rdispls, MPI_FLOAT, &
                          MPI_COMM_WORLD, istat)
-      !$acc end host_data
+      #ifndef UM
+        !$acc end host_data
+      #endif
+
     end do
 
     !$acc wait
+    #ifndef UM
     !$acc host_data use_device(input, label) if(simulation_device >= 0)
+    #endif
+
     istat = torchfort_train("mymodel", input, label, loss_val)
     if (istat /= TORCHFORT_RESULT_SUCCESS) stop
+    #ifndef UM
     !$acc end host_data
+    #endif
     !$acc wait
   end do
+  #ifndef UM
   !$acc end data
+  #endif
   if (rank == 0 .and. ntrain_steps >= 1) print*, "final training loss: ", loss_val
 
   ! run inference
   if (rank == 0 .and. nval_steps >= 1) print*, "start validation..."
+  #ifndef UM
   !$acc data copyin(u, u_div, input, label, input_local, label_local) copyout(output) if(simulation_device >= 0)
+  #endif
   do i = 1, nval_steps
     call run_simulation_step(u, u_div)
     !$acc kernels async if(simulation_device >= 0)
@@ -318,20 +343,28 @@ program train_distributed
     !$acc wait
 
     ! gather sample on all GPUs
+    #ifndef UM
     !$acc host_data use_device(input_local, label_local, input, label) if(simulation_device >= 0)
+    #endif
     call MPI_Allgather(input_local(:,:,1,1), n * n/nranks, MPI_FLOAT, &
                        input(:,:,1,1), n * n/nranks, MPI_FLOAT, &
                        MPI_COMM_WORLD, istat)
     call MPI_Allgather(label_local(:,:,1,1), n * n/nranks, MPI_FLOAT, &
                        label(:,:,1,1), n * n/nranks, MPI_FLOAT, &
                        MPI_COMM_WORLD, istat)
+    #ifndef UM
     !$acc end host_data
+    #endif
 
     !$acc wait
+    #ifndef UM
     !$acc host_data use_device(input, output) if(simulation_device >= 0)
+    #endif
     istat = torchfort_inference("mymodel", input(:,:,1:1,1:1), output(:,:,1:1,1:1))
     if (istat /= TORCHFORT_RESULT_SUCCESS) stop
+    #ifndef UM
     !$acc end host_data
+    #endif
     !$acc wait
 
     !$acc kernels if(simulation_device >= 0)
@@ -349,7 +382,9 @@ program train_distributed
       call write_sample(output(:,:,1,1), filename)
     endif
   end do
+  #ifndef UM
   !$acc end data
+  #endif
 
   if (rank == 0) then
     print*, "saving model and writing checkpoint..."
