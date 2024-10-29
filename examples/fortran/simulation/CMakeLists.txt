@@ -3,6 +3,13 @@ include(CMakeFindDependencyMacro)
 set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/home/tartarughina/hdf5/build/HDF5-1.17.0-Linux/HDF_Group/HDF5/1.17.0/cmake")
 find_dependency( MPI )
 find_package(MPI REQUIRED)
+
+if(TARGET MPI::MPI_Fortran)
+message(STATUS "MPI::MPI_Fortran found")
+else()
+message(STATUS "MPI::MPI_Fortran not found")
+endif()
+
 find_package(HDF5 REQUIRED)
 
 set(fortran_example_targets
