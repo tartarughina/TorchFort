@@ -1,5 +1,5 @@
 list(APPEND CMAKE_PREFIX_PATH "/home/tartarughina/hdf5/build/HDF5-1.17.0-Linux/HDF_Group/HDF5/1.17.0/cmake")
-find_package(HDF5 COMPONENTS Fortran REQUIRED)
+find_package(HDF5 REQUIRED)
 
 set(fortran_example_targets
   train
@@ -28,7 +28,7 @@ foreach(tgt ${fortran_example_targets})
     ${HDF5_Fortran_INCLUDE_DIRS}
   )
   target_link_libraries(${tgt} PRIVATE MPI::MPI_Fortran)
-  target_link_libraries(${tgt} PRIVATE hdf5::hdf5_fortran)
+  target_link_libraries(${tgt} PRIVATE HDF5::HDF5)
   target_link_libraries(${tgt} PRIVATE "${PROJECT_NAME}_fort")
   target_link_libraries(${tgt} PRIVATE ${PROJECT_NAME})
   if (CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC")
