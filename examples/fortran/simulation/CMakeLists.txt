@@ -1,4 +1,4 @@
-set(CMAKE_PREFIX_PATH "/home/tartarughina/hdf5/build/HDF5-1.17.0-Linux/HDF_Group/HDF5/1.17.0/cmake")
+set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/home/tartarughina/hdf5/build/HDF5-1.17.0-Linux/HDF_Group/HDF5/1.17.0/cmake")
 find_package(MPI REQUIRED)
 find_package(HDF5 REQUIRED)
 
