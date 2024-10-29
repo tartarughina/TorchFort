@@ -1,9 +1,6 @@
 set(CMAKE_PREFIX_PATH "/home/tartarughina/hdf5/build/HDF5-1.17.0-Linux/HDF_Group/HDF5/1.17.0/cmake")
+find_package(MPI REQUIRED)
 find_package(HDF5 REQUIRED)
-
-if(TARGET HDF5::HDF5)
-message(STATUS "HDF5 found")
-endif()
 
 set(fortran_example_targets
   train

@@ -179,7 +179,7 @@ if (TORCHFORT_ENABLE_GPU)
     ${CUDAToolkit_INCLUDE_DIRS}
     ${NCCL_INCLUDE_DIR}
   )
-    target_link_libraries(${PROJECT_NAME} PRIVATE CUDA::cudart)
+    target_link_libraries(${PROJECT_NAME} PRIVATE NVHPC::CUDART)
     target_compile_definitions(${PROJECT_NAME} PRIVATE ENABLE_GPU)
 endif()
 target_compile_definitions(${PROJECT_NAME} PRIVATE YAML_CPP_STATIC_DEFINE)
