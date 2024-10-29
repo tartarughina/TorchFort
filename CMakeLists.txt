@@ -6,6 +6,7 @@ endif()
 
 # https://github.com/NVIDIA/TorchFort/issues/3
 cmake_policy(SET CMP0057 NEW)
+include(CMakeFindDependencyMacro)
 
 # User-defined build options
 set(TORCHFORT_CUDA_CC_LIST "70;80;90" CACHE STRING "List of CUDA compute capabilities to build torchfort for.")
@@ -103,6 +104,7 @@ if (TORCHFORT_ENABLE_GPU)
     list(JOIN TORCH_CUDA_ARCH_LIST " " TORCH_CUDA_ARCH_LIST)
 endif()
 
+find_dependency(CUDA)
 find_package(Torch REQUIRED)
 
 # yaml-cpp
