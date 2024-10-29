@@ -60,8 +60,6 @@ if (TORCHFORT_ENABLE_GPU)
 
     # HPC SDK
     # Locate and append NVHPC CMake configuration if available
-    set(CUDA_TOOLKIT_ROOT_DIR "${NVHPC_ROOT}")
-    find_package(CUDA REQUIRED)
 
     find_program(NVHPC_CXX_BIN "nvc++")
     if (NVHPC_CXX_BIN)

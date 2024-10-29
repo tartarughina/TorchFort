@@ -15,7 +15,7 @@ target_sources(train_cart_pole
   train.cpp
 )
 
-find_package(Python 3.6 COMPONENTS Interpreter Development REQUIRED)
+find_package(Python 3.11 COMPONENTS Interpreter Development REQUIRED)
 find_package(pybind11 CONFIG REQUIRED)
 pybind11_add_module(PyEnvironments py_env.cpp)
 target_link_libraries(PyEnvironments PRIVATE environments)
