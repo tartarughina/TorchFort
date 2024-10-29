@@ -1,3 +1,4 @@
+list(APPEND CMAKE_PREFIX_PATH "/home/tartarughina/hdf5/build/HDF5-1.17.0-Linux/HDF_Group/HDF5/1.17.0/cmake")
 find_package(HDF5 COMPONENTS Fortran REQUIRED)
 
 set(fortran_example_targets
