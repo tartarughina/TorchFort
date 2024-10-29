@@ -4,10 +4,10 @@ set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/home/tartarughina/hdf5/build/HDF5-1
 find_dependency( MPI )
 find_package(MPI REQUIRED)
 
-if(TARGET MPI::MPI_Fortran)
-message(STATUS "MPI::MPI_Fortran found")
+if(TARGET MPI::MPI_C)
+message(STATUS "MPI::MPI_C found")
 else()
-message(STATUS "MPI::MPI_Fortran not found")
+message(STATUS "MPI::MPI_C not found")
 endif()
 
 find_package(HDF5 REQUIRED)
