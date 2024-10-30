@@ -10,7 +10,8 @@ else()
 message(STATUS "MPI::MPI_C not found")
 endif()
 
-find_dependency( HDF5 )
+#find_dependency( HDF5 )
+list (APPEND CMAKE_MODULE_PATH ${HDF5_DIR})
 find_package(HDF5 REQUIRED)
 
 if (TARGET HDF5::HDF5)

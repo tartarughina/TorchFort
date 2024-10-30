@@ -106,13 +106,7 @@ FetchContent_Declare(
   GIT_TAG master # Can be a tag (yaml-cpp-x.x.x), a commit hash, or a branch name (master)
 )
 FetchContent_MakeAvailable(yaml-cpp)
-
-find_library(YAML_CPP_LIBRARY
-        NAMES yaml-cpp
-        HINTS ${YAML_CPP_LIBRARY_DIR}
-      )
-            string(REPLACE "/lib" "/include" YAML_CPP_INCLUDE_DIR ${YAML_CPP_LIBRARY})
-message(STATUS "Using yaml-cpp library: ${YAML_CPP_LIBRARY}")
+message(STATUS "Using yaml-cpp library: ${YAML_CPP_LIBRARY_DIR}")
 
 # C/C++ shared library
 add_library(${PROJECT_NAME} SHARED)
