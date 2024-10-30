@@ -109,11 +109,10 @@ set (YAML_BUILD_SHARED_LIBS ON CACHE BOOL "")
 FetchContent_MakeAvailable(yaml-cpp)
 if (TARGET yaml-cpp::yaml-cpp)
     message(STATUS "Found yaml-cpp")
-    message(STATUS "Using yaml-cpp include directory: ${YAML_CPP_INCLUDE_DIR}")
 else()
     message(FATAL_ERROR "Failed to fetch yaml-cpp")
+    return()
 endif()
-message(STATUS "Using yaml-cpp library: ${YAML_CPP_LIBRARIES}")
 
 # C/C++ shared library
 add_library(${PROJECT_NAME} SHARED)
@@ -163,7 +162,7 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} PRIVATE ${TORCH_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${NCCL_LIBRARY})
 target_link_libraries(${PROJECT_NAME} PRIVATE MPI::MPI_CXX)
-target_link_libraries(${PROJECT_NAME} PRIVATE yaml-cpp::yaml-cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE yaml-cpp)
 
 # ${YAML_CPP_INCLUDE_DIR}
 target_include_directories(${PROJECT_NAME}
