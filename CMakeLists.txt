@@ -112,6 +112,8 @@ find_package(yaml-cpp REQUIRED)
 if (TARGET yaml-cpp::yaml-cpp)
     message(STATUS "Found yaml-cpp")
     message(STATUS "yaml-cpp include dir: ${YAML_CPP_INCLUDE_DIR}")
+    message(STATUS "yaml-cpp library: ${YAML_CPP_LIBRARIES}")
+    message(STATUS "Tets :${yaml-cpp_INCLUDE_DIRS}")
 else()
     message(FATAL_ERROR "Failed to fetch yaml-cpp")
     return()
@@ -171,7 +173,7 @@ target_include_directories(${PROJECT_NAME}
     PRIVATE
     ${MPI_CXX_INCLUDE_DIRS}
     ${TORCH_INCLUDE_DIRS}
-    ${YAML_CPP_INCLUDE_DIR}
+    ${YAML_CPP_INCLUDE_DIR}/yaml-cpp
 )
 if (TORCHFORT_ENABLE_GPU)
     target_include_directories(${PROJECT_NAME}
