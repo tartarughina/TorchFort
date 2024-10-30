@@ -167,11 +167,11 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${NCCL_LIBRARY})
 target_link_libraries(${PROJECT_NAME} PRIVATE MPI::MPI_CXX)
 target_link_libraries(${PROJECT_NAME} PRIVATE yaml-cpp::yaml-cpp)
 
-# ${YAML_CPP_INCLUDE_DIR}
 target_include_directories(${PROJECT_NAME}
     PRIVATE
     ${MPI_CXX_INCLUDE_DIRS}
     ${TORCH_INCLUDE_DIRS}
+    ${YAML_CPP_INCLUDE_DIR}
 )
 if (TORCHFORT_ENABLE_GPU)
     target_include_directories(${PROJECT_NAME}
