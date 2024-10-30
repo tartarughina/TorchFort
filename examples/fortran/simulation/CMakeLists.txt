@@ -1,6 +1,5 @@
 include(CMakeFindDependencyMacro)
 
-enable_language(C)
 find_dependency( MPI )
 find_package(MPI REQUIRED)
 

@@ -20,11 +20,12 @@ option(TORCHFORT_ENABLE_GPU "Enable GPU/CUDA support" ON)
 
 # __rdtsc() in torch not supported by nvc++. Use g++ for CXX files.
 set(CMAKE_CXX_COMPILER "g++-12")
+set(CMAKE_C_COMPILER "gcc-12")
 
 if (TORCHFORT_BUILD_FORTRAN)
-    set(LANGS Fortran CXX)
+    set(LANGS Fortran C CXX)
 else()
-    set(LANGS CXX)
+    set(LANGS C CXX)
 endif()
 project(torchfort LANGUAGES ${LANGS})
 
@@ -32,7 +33,6 @@ project(torchfort LANGUAGES ${LANGS})
 if (TORCHFORT_BUILD_TESTS)
     enable_testing()
     include(CTest)
-    include(FetchContent)
     FetchContent_Declare(
     googletest
     URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
