@@ -105,6 +105,7 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
   GIT_TAG master # Can be a tag (yaml-cpp-x.x.x), a commit hash, or a branch name (master)
 )
+set (YAML_BUILD_SHARED_LIBS ON CACHE BOOL "")
 FetchContent_MakeAvailable(yaml-cpp)
 if (TARGET yaml-cpp::yaml-cpp)
     message(STATUS "Found yaml-cpp")
