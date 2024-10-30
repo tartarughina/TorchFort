@@ -27,7 +27,7 @@ if (NOT TORCHFORT_YAML_CPP_ROOT)
 endif()
 
 # __rdtsc() in torch not supported by nvc++. Use g++ for CXX files.
-set(CMAKE_CXX_COMPILER "g++")
+# set(CMAKE_CXX_COMPILER "g++")
 
 if (TORCHFORT_BUILD_FORTRAN)
     set(LANGS Fortran CXX)
