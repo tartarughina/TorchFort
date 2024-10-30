@@ -11,6 +11,7 @@ message(STATUS "MPI::MPI_C not found")
 endif()
 
 set( CMAKE_PREFIX_PATH "/home/tartarughina/hdf5/build/HDF5-1.17.0-Linux/HDF_Group/HDF5/1.17.0/cmake";${CMAKE_PREFIX_PATH})
+find_dependency( HDF5 )
 find_package(HDF5 REQUIRED)
 
 if (TARGET HDF5::HDF5)
