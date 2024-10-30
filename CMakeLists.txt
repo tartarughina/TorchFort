@@ -100,15 +100,18 @@ find_dependency(CUDA)
 find_package(Torch REQUIRED)
 
 # yaml-cpp
-FetchContent_Declare(
-  yaml-cpp
-  GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-  GIT_TAG master # Can be a tag (yaml-cpp-x.x.x), a commit hash, or a branch name (master)
-)
-set (YAML_BUILD_SHARED_LIBS ON CACHE BOOL "")
-FetchContent_MakeAvailable(yaml-cpp)
+set (CMAKE_PREFIX_PATH ${HOME}/yaml-cpp-def/lib64/cmake/yaml-cpp; ${CMAKE_PREFIX_PATH})
+find_package(yaml-cpp REQUIRED)
+# FetchContent_Declare(
+#   yaml-cpp
+#   GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+#   GIT_TAG master # Can be a tag (yaml-cpp-x.x.x), a commit hash, or a branch name (master)
+# )
+# set (YAML_BUILD_SHARED_LIBS ON CACHE BOOL "")
+# FetchContent_MakeAvailable(yaml-cpp)
 if (TARGET yaml-cpp::yaml-cpp)
     message(STATUS "Found yaml-cpp")
+    message(STATUS "yaml-cpp include dir: ${YAML_CPP_INCLUDE_DIR}")
 else()
     message(FATAL_ERROR "Failed to fetch yaml-cpp")
     return()
@@ -162,7 +165,7 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} PRIVATE ${TORCH_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${NCCL_LIBRARY})
 target_link_libraries(${PROJECT_NAME} PRIVATE MPI::MPI_CXX)
-target_link_libraries(${PROJECT_NAME} PRIVATE yaml-cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE yaml-cpp::yaml-cpp)
 
 # ${YAML_CPP_INCLUDE_DIR}
 target_include_directories(${PROJECT_NAME}
