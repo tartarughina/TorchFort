@@ -7,24 +7,16 @@ endif()
 # https://github.com/NVIDIA/TorchFort/issues/3
 cmake_policy(SET CMP0057 NEW)
 include(CMakeFindDependencyMacro)
+include(FetchContent)
 
 # User-defined build options
 set(TORCHFORT_CUDA_CC_LIST "70;80;90" CACHE STRING "List of CUDA compute capabilities to build torchfort for.")
 set(TORCHFORT_NCCL_ROOT CACHE STRING "Path to search for NCCL installation. Default NVIDA HPC SDK provided NCCL version if available.")
-set(TORCHFORT_YAML_CPP_ROOT CACHE STRING "Path to search for yaml-cpp installation.")
+# set(TORCHFORT_YAML_CPP_ROOT CACHE STRING "Path to search for yaml-cpp installation.")
 option(TORCHFORT_BUILD_FORTRAN "Build Fortran bindings" ON)
 option(TORCHFORT_BUILD_EXAMPLES "Build examples" OFF)
 option(TORCHFORT_BUILD_TESTS "Build tests" OFF)
 option(TORCHFORT_ENABLE_GPU "Enable GPU/CUDA support" ON)
-
-# For backward-compatibility with existing variable
-if (YAML_CPP_ROOT)
-    set(TORCHFORT_YAML_CPP_ROOT ${YAML_CPP_ROOT})
-endif()
-
-if (NOT TORCHFORT_YAML_CPP_ROOT)
-    message(FATAL_ERROR "Please set TORCHFORT_YAML_CPP_ROOT to yaml-cpp installation directory.")
-endif()
 
 # __rdtsc() in torch not supported by nvc++. Use g++ for CXX files.
 set(CMAKE_CXX_COMPILER "g++-12")
@@ -108,16 +100,18 @@ find_dependency(CUDA)
 find_package(Torch REQUIRED)
 
 # yaml-cpp
-list(APPEND CMAKE_MODULE_PATH ${TORCHFORT_YAML_CPP_ROOT}/lib64/cmake/yaml-cpp)
-find_package(yaml-cpp REQUIRED)
-find_path(YAML_CPP_INCLUDE_DIR REQUIRED
-  NAMES yaml-cpp/yaml.h
-  HINTS ${TORCHFORT_YAML_CPP_ROOT}/include
+FetchContent_Declare(
+  yaml-cpp
+  GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+  GIT_TAG master # Can be a tag (yaml-cpp-x.x.x), a commit hash, or a branch name (master)
 )
-find_library(YAML_CPP_LIBRARY REQUIRED
-  NAMES libyaml-cpp.a
-  HINTS ${TORCHFORT_YAML_CPP_ROOT}/lib
-)
+FetchContent_MakeAvailable(yaml-cpp)
+
+find_library(YAML_CPP_LIBRARY
+        NAMES yaml-cpp
+        HINTS ${YAML_CPP_LIBRARY_DIR}
+      )
+            string(REPLACE "/lib" "/include" YAML_CPP_INCLUDE_DIR ${YAML_CPP_LIBRARY})
 message(STATUS "Using yaml-cpp library: ${YAML_CPP_LIBRARY}")
 
 # C/C++ shared library
@@ -168,7 +162,7 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} PRIVATE ${TORCH_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${NCCL_LIBRARY})
 target_link_libraries(${PROJECT_NAME} PRIVATE MPI::MPI_CXX)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${YAML_CPP_LIBRARY})
+target_link_libraries(${PROJECT_NAME} PRIVATE yaml-cpp::yaml-cpp)
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE
