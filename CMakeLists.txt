@@ -111,6 +111,7 @@ if (TARGET yaml-cpp::yaml-cpp)
     set(YAML_CPP_LIBRARY_DIR ${yaml-cpp_BINARY_DIR})
 else()
     message(FATAL_ERROR "Failed to fetch yaml-cpp")
+endif()
 message(STATUS "Using yaml-cpp library: ${YAML_CPP_LIBRARY_DIR}")
 
 # C/C++ shared library
