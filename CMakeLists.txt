@@ -57,7 +57,7 @@ find_package(MPI REQUIRED)
 
 # CUDA
 if (TORCHFORT_ENABLE_GPU)
-    # find_package(CUDAToolkit REQUIRED)
+    find_package(CUDAToolkit REQUIRED)
 
     # HPC SDK
     # Locate and append NVHPC CMake configuration if available
@@ -108,7 +108,8 @@ find_dependency(CUDA)
 find_package(Torch REQUIRED)
 
 # yaml-cpp
-#find_package(yaml-cpp REQUIRED)
+list(APPEND CMAKE_MODULE_PATH ${TORCHFORT_YAML_CPP_ROOT}/lib64/cmake/yaml-cpp)
+find_package(yaml-cpp REQUIRED)
 find_path(YAML_CPP_INCLUDE_DIR REQUIRED
   NAMES yaml-cpp/yaml.h
   HINTS ${TORCHFORT_YAML_CPP_ROOT}/include

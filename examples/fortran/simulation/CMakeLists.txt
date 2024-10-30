@@ -13,6 +13,12 @@ endif()
 find_dependency( HDF5 )
 find_package(HDF5 REQUIRED)
 
+if (TARGET HDF5::HDF5)
+message(STATUS "HDF5::HDF5 found")
+else()
+message(STATUS "HDF5::HDF5 not found")
+endif()
+
 set(fortran_example_targets
   train
   train_distributed
