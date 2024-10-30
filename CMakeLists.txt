@@ -107,12 +107,12 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(yaml-cpp)
 if (TARGET yaml-cpp::yaml-cpp)
-    set(YAML_CPP_INCLUDE_DIR ${yaml-cpp_SOURCE_DIR}/include)
-    set(YAML_CPP_LIBRARY_DIR ${yaml-cpp_BINARY_DIR})
+    message(STATUS "Found yaml-cpp")
+    message(STATUS "Using yaml-cpp include directory: ${YAML_CPP_INCLUDE_DIR}")
 else()
     message(FATAL_ERROR "Failed to fetch yaml-cpp")
 endif()
-message(STATUS "Using yaml-cpp library: ${YAML_CPP_LIBRARY_DIR}")
+message(STATUS "Using yaml-cpp library: ${YAML_CPP_LIBRARIES}")
 
 # C/C++ shared library
 add_library(${PROJECT_NAME} SHARED)
