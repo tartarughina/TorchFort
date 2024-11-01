@@ -171,7 +171,7 @@ program train_distributed
         call exit(1)
     end select
   end do
-
+print*, "Before OPENACC required message"
 #ifndef _OPENACC
   if (simulation_device /= -1) then
     print*, "OpenACC support required to run simulation on GPU. &
@@ -179,6 +179,7 @@ program train_distributed
     call exit(1)
   endif
 #endif
+print*, "Enabling OpenACC support"
 #ifdef _OPENACC
   if (simulation_device == 0) then
     ! assign GPUs by local rank
@@ -187,12 +188,13 @@ program train_distributed
     call acc_init(dev_type)
   endif
 #endif
+print*, "OpenACC support enabled"
   if (model_device == 0) then
     ! assign GPUs by local rank
     model_device = local_rank
   endif
 
-
+print*, "Assigned device based on the local rank"
   if (rank == 0) then
     print*, "Run settings:"
     print*, "\tconfigfile: ", trim(configfile)
@@ -225,11 +227,11 @@ program train_distributed
   batch_size = 16 / nranks ! splitting global batch across GPUs
   dt = 0.01
   a = [1.0, 0.789] ! off-angle to generate more varied training data
-
+print*, "Allocating simulation data"
   ! allocate "simulation" data sized for *local* domain
   allocate(u(n, n/nranks))
   allocate(u_div(n, n/nranks))
-
+print*, "Allocating training/inference data"
   ! allocate training/inference data in standard 2D layout (NCHW, row-major),
   ! sized for *global* domain
   allocate(input_local(n, n/nranks, nchannels, batch_size*nranks))
@@ -237,7 +239,7 @@ program train_distributed
   allocate(input(n, n, nchannels, batch_size))
   allocate(label(n, n, nchannels, batch_size))
   allocate(output(n, n, nchannels, batch_size))
-
+print*, "Allocating MPI Alltoallv arrays"
   ! allocate and set up arrays for MPI Alltoallv (batch redistribution)
   allocate(sendcounts(nranks), recvcounts(nranks))
   allocate(sdispls(nranks), rdispls(nranks))
@@ -251,11 +253,11 @@ program train_distributed
     sdispls(i) = sdispls(i-1) + n*n/nranks*batch_size
     rdispls(i) = rdispls(i-1) + n*n/nranks
   end do
-
+print*, "Allocating cuDNN benchmark mode"
   ! set torch benchmark mode
   istat = torchfort_set_cudnn_benchmark(.true.)
   if (istat /= TORCHFORT_RESULT_SUCCESS) stop
-
+print*, "Creating distributed model"
   ! setup the data parallel model
   istat = torchfort_create_distributed_model("mymodel", configfile, MPI_COMM_WORLD, model_device)
   if (istat /= TORCHFORT_RESULT_SUCCESS) stop
@@ -266,7 +268,7 @@ program train_distributed
     istat = torchfort_load_checkpoint("mymodel", checkpoint_dir, train_step_ckpt, val_step_ckpt)
     if (istat /= TORCHFORT_RESULT_SUCCESS) stop
   endif
-
+print*, "Init simulation"
   call init_simulation(n, dt, a, train_step_ckpt*batch_size*dt, rank, nranks, simulation_device)
 
   ! run training
@@ -282,7 +284,7 @@ program train_distributed
     end do
 
     !$acc wait
-
+print*, "Distribute batch data across GPUs"
     ! distribute local batch data across GPUs for data parallel training
     do j = 1, batch_size
       !$acc host_data use_device(input_local, label_local, input, label) if(simulation_device >= 0)
