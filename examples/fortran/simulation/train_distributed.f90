@@ -261,7 +261,7 @@ print*, "Creating distributed model"
   ! setup the data parallel model
   istat = torchfort_create_distributed_model("mymodel", configfile, MPI_COMM_WORLD, model_device)
   if (istat /= TORCHFORT_RESULT_SUCCESS) stop
-
+  print*, "Model created"
   ! load training checkpoint if requested
   if (load_ckpt) then
     if (rank == 0) print*, "loading checkpoint..."
