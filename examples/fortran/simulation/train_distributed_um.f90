@@ -231,6 +231,7 @@ program train_distributed_um
     else
       print*, "\tTuning mode disabled"
     endif
+    print*, "\tOversub ratio: ", oversub
     print*, "\tconfigfile: ", trim(configfile)
     if (simulation_device == TORCHFORT_DEVICE_CPU) then
       print*, "\tsimulation_device: cpu"
