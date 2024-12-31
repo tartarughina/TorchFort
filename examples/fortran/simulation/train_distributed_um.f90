@@ -32,6 +32,8 @@ subroutine print_help_message
   "options:\n"// &
   "\t--tuning\n" //&
   "\t\tEnable unified memory tuning. (default: disabled) \n" // &
+  "\t--oversub\n" //&
+  "\t\tSet the oversub ratio. (default: 0) [0-1-2]\n" // &
   "\t--configfile\n" // &
   "\t\tTorchFort configuration file to use. (default: config_mlp_native.yaml) \n" // &
   "\t--simulation_device\n" // &
@@ -64,6 +66,7 @@ program train_distributed_um
   implicit none
 
   logical :: tuning = .false.
+  integer :: oversub = 0
 
   integer :: i, j, istat
   integer :: n, nchannels, batch_size
@@ -125,6 +128,14 @@ program train_distributed_um
     end if
     call get_command_argument(i, arg)
     select case(arg)
+    case('--oversub')
+        call get_command_argument(i+1, arg)
+        read(arg, *) oversub
+
+        if (oversub < 0 .or. oversub > 2) then
+          print*, "Invalid oversub argument."
+          call exit(1)
+        endif
       case('--tuning')
         tuning = .true.
       case('--size')
