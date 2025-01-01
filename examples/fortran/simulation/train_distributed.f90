@@ -30,6 +30,10 @@ subroutine print_help_message
   print*, &
   "Usage: train_distributed [options]\n"// &
   "options:\n"// &
+  "\t--size\n" //&
+  "\t\tChange the problem size. (default: 32) \n" // &
+  "\t--batch\n" //&
+  "\t\tChange the batch sampling size divided by rank. (default: 16) \n" // &
   "\t--configfile\n" // &
   "\t\tTorchFort configuration file to use. (default: config_mlp_native.yaml) \n" // &
   "\t--simulation_device\n" // &
@@ -96,6 +100,8 @@ program train_distributed
   logical :: skip_next
   character(len=256) :: arg
 
+  double precision :: start, end
+
   ! initialize MPI
   call MPI_Init(istat)
   call MPI_Comm_rank(MPI_COMM_WORLD, rank, istat)
@@ -103,10 +109,13 @@ program train_distributed
   call MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, local_comm, istat)
   call MPI_Comm_rank(local_comm, local_rank, istat)
 
-  if (nranks /= 2) then
-    print*, "This example requires 2 ranks to run. Exiting."
+  if (nranks < 2) then
+    print*, "This example requires at least 2 ranks to run. Exiting."
     stop
   endif
+
+  n = 32
+  batch_size = 16 / nranks ! splitting global batch across GPUs
 
   ! read command line arguments
   skip_next = .false.
@@ -117,6 +126,15 @@ program train_distributed
     end if
     call get_command_argument(i, arg)
     select case(arg)
+      case('--size')
+        call get_command_argument(i+1, arg)
+        read(arg, *) n
+        skip_next = .true.
+      case('--batch')
+        call get_command_argument(i+1, arg)
+        read(arg, *) batch_size
+        batch_size = batch_size / nranks
+        skip_next = .true.
       case('--configfile')
         call get_command_argument(i+1, arg)
         read(arg, *) configfile
@@ -172,6 +190,13 @@ program train_distributed
     end select
   end do
 
+  ! The ideal ratio of batch size to problem size is 1:4
+  ! In the first example size was 32 and batch size was 16 / nranks (2) = 8
+  if (batch_size > n) then
+      print*, "Batch size cannot be larger than the problem size. Exiting."
+      call exit(1)
+  endif
+
 #ifndef _OPENACC
   if (simulation_device /= -1) then
     print*, "OpenACC support required to run simulation on GPU. &
@@ -213,6 +238,9 @@ program train_distributed
     endif
     print*, "\toutput_model_name: ", trim(output_model_name)
     print*, "\toutput_checkpoint_dir: ", trim(output_checkpoint_dir)
+    print*, "\tNumber of ranks: ", nranks
+    print*, "\tProblem size: ", n
+    print*, "\tBatch size: ", batch_size
     print*, "\tntrain_steps: ", ntrain_steps
     print*, "\tnval_steps: ", nval_steps
     print*, "\tval_write_freq: ", val_write_freq
@@ -220,9 +248,7 @@ program train_distributed
   endif
 
   ! model/simulation parameters
-  n = 32
   nchannels = 1
-  batch_size = 16 / nranks ! splitting global batch across GPUs
   dt = 0.01
   a = [1.0, 0.789] ! off-angle to generate more varied training data
 
@@ -270,7 +296,10 @@ program train_distributed
   call init_simulation(n, dt, a, train_step_ckpt*batch_size*dt, rank, nranks, simulation_device)
 
   ! run training
-  if (rank == 0 .and. ntrain_steps >= 1) print*, "start training..."
+  if (rank == 0 .and. ntrain_steps >= 1) then
+      print*, "start training..."
+      start = MPI_Wtime()
+  endif
   !$acc data copyin(u, u_div, input, label, input_local, label_local) if(simulation_device >= 0)
   do i = 1, ntrain_steps
     do j = 1, batch_size * nranks
@@ -357,6 +386,8 @@ program train_distributed
     if (istat /= TORCHFORT_RESULT_SUCCESS) stop
     istat = torchfort_save_checkpoint("mymodel", output_checkpoint_dir)
     if (istat /= TORCHFORT_RESULT_SUCCESS) stop
+    end = MPI_Wtime()
+    print*, "# Simulation time: ", end - start, " s"
   endif
 
   call MPI_Finalize(istat)

@@ -32,6 +32,10 @@ subroutine print_help_message
   "options:\n"// &
   "\t--tuning\n" //&
   "\t\tEnable unified memory tuning. (default: disabled) \n" // &
+  "\t--size\n" //&
+  "\t\tChange the problem size. (default: 32) \n" // &
+  "\t--batch\n" //&
+  "\t\tChange the batch sampling size divided by rank. (default: 16) \n" // &
   "\t--configfile\n" // &
   "\t\tTorchFort configuration file to use. (default: config_mlp_native.yaml) \n" // &
   "\t--simulation_device\n" // &
@@ -100,6 +104,8 @@ program train_distributed_um
 
   logical :: skip_next
   character(len=256) :: arg
+
+  double precision :: start, end
 
   ! initialize MPI
   call MPI_Init(istat)
@@ -190,6 +196,15 @@ program train_distributed_um
         call exit(1)
     end select
   end do
+
+! The ideal ratio of batch size to problem size is 1:4
+! In the first example size was 32 and batch size was 16 / nranks (2) = 8
+if (batch_size > n) then
+    print*, "Batch size cannot be larger than the problem size. Exiting."
+    call exit(1)
+endif
+
+  ! check for OpenACC support
 
 #ifndef _OPENACC
   if (simulation_device /= -1) then
@@ -321,7 +336,10 @@ program train_distributed_um
   call init_simulation(n, dt, a, train_step_ckpt*batch_size*dt, rank, nranks, simulation_device)
 
   ! run training
-  if (rank == 0 .and. ntrain_steps >= 1) print*, "start training..."
+  if (rank == 0 .and. ntrain_steps >= 1) then
+      print*, "start training..."
+      start = MPI_Wtime()
+  endif
 
   ! Profiling showed that this is probably the most neeaded tune to improve performance
   ! Page faults are present only during initial iterations of training, especially during the MPI_Alltoallv calls
@@ -495,8 +513,8 @@ program train_distributed_um
     if (istat /= TORCHFORT_RESULT_SUCCESS) stop
     istat = torchfort_save_checkpoint("mymodel", output_checkpoint_dir)
     if (istat /= TORCHFORT_RESULT_SUCCESS) stop
-    print*, "saving model and checkpoint done"
-
+    end = MPI_Wtime()
+    print*, "# Simulation time: ", end - start, " s"
   endif
 
   call MPI_Finalize(istat)
